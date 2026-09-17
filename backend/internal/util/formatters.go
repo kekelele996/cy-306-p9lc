@@ -60,6 +60,8 @@ func RegistrationStatusText(status string) string {
 	switch status {
 	case constants.RegistrationStatusRegistered:
 		return "已报名"
+	case constants.RegistrationStatusWaitlisted:
+		return "候补中"
 	case constants.RegistrationStatusCancelled:
 		return "已取消"
 	case constants.RegistrationStatusCheckedIn:

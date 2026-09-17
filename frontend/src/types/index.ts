@@ -27,6 +27,7 @@ export interface Activity {
   organizer_id: number
   created_at: string
   registered_count?: number
+  waitlisted_count?: number
 }
 
 export interface Registration {
@@ -39,6 +40,7 @@ export interface Registration {
   voucher_no: string
   status: string
   review_status: string
+  waitlist_position?: number
   created_at: string
 }
 

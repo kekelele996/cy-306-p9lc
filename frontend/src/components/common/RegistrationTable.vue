@@ -5,9 +5,12 @@
       <el-table-column prop="name" label="姓名" width="110" />
       <el-table-column prop="phone" label="手机号" width="130" />
       <el-table-column prop="voucher_no" label="凭证号" width="170" />
-      <el-table-column label="状态" width="100">
+      <el-table-column label="状态" width="150">
         <template #default="{ row }">
           <el-tag :type="statusTag(row.status)">{{ RegistrationStatusText[row.status] }}</el-tag>
+          <el-tag v-if="row.status === 'waitlisted'" type="warning" size="small" style="margin-left: 6px">
+            第 {{ row.waitlist_position || '-' }} 位
+          </el-tag>
         </template>
       </el-table-column>
       <el-table-column label="审核" width="100">
@@ -18,9 +21,9 @@
       <el-table-column prop="created_at" label="报名时间" width="170" />
       <el-table-column label="操作" min-width="220">
         <template #default="{ row }">
-          <el-button v-if="row.review_status === 'pending'" size="small" type="success" @click="review(row, 'approved')">通过</el-button>
-          <el-button v-if="row.review_status === 'pending'" size="small" type="danger" @click="review(row, 'rejected')">拒绝</el-button>
-          <el-button size="small" type="primary" @click="emit('checkin', row)">签到</el-button>
+          <el-button v-if="row.review_status === 'pending' && row.status === 'registered'" size="small" type="success" @click="review(row, 'approved')">通过</el-button>
+          <el-button v-if="row.review_status === 'pending' && (row.status === 'registered' || row.status === 'waitlisted')" size="small" type="danger" @click="review(row, 'rejected')">拒绝</el-button>
+          <el-button v-if="row.status === 'registered' || row.status === 'checked_in'" size="small" type="primary" @click="emit('checkin', row)">签到</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -58,6 +61,7 @@ const emit = defineEmits<{
 function statusTag(status: string): string {
   if (status === 'checked_in') return 'success'
   if (status === 'cancelled') return 'info'
+  if (status === 'waitlisted') return 'warning'
   return 'primary'
 }
 function reviewTag(status: string): string {

@@ -45,7 +45,9 @@ CREATE TABLE IF NOT EXISTS registrations (
   phone VARCHAR(20) NOT NULL,
   remark VARCHAR(255) NOT NULL DEFAULT '',
   voucher_no VARCHAR(50) NOT NULL,
+  -- status: registered 正式报名(占名额) / waitlisted 候补(不占名额) / cancelled 已取消或被驳回 / checked_in 已签到
   status VARCHAR(20) NOT NULL DEFAULT 'registered',
+  -- review_status: pending 待审核 / approved 已通过 / rejected 已驳回
   review_status VARCHAR(20) NOT NULL DEFAULT 'pending',
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (id),
@@ -113,23 +115,30 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   PRIMARY KEY (id)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 预置种子数据（密码：admin/Admin@123，organizer 与 user/User@123）
+-- 预置种子数据（密码：admin/Admin@123，organizer、user/li4/wang5 密码 User@123）
 INSERT INTO users (id, username, password_hash, nickname, avatar, role, email, phone, created_at) VALUES
 (1, 'admin', '$2a$10$bFfMuQAuKWflKxpuDYdFpeGJPVgD83q/.278LHYLL5S0DDmEfChX2', '系统管理员', '', 'admin', 'admin@gbevent.dev', '13800000001', NOW(3)),
 (2, 'organizer', '$2a$10$TMTpnDbEwRbtcbF9VJxAxe5IswQjmo7pboKI9zVtU.BYnhzdJpX9a', '活动组织者', '', 'organizer', 'org@gbevent.dev', '13800000002', NOW(3)),
-(3, 'user', '$2a$10$TMTpnDbEwRbtcbF9VJxAxe5IswQjmo7pboKI9zVtU.BYnhzdJpX9a', '普通用户', '', 'user', 'user@gbevent.dev', '13800000003', NOW(3));
+(3, 'user', '$2a$10$TMTpnDbEwRbtcbF9VJxAxe5IswQjmo7pboKI9zVtU.BYnhzdJpX9a', '普通用户', '', 'user', 'user@gbevent.dev', '13800000003', NOW(3)),
+(4, 'li4', '$2a$10$TMTpnDbEwRbtcbF9VJxAxe5IswQjmo7pboKI9zVtU.BYnhzdJpX9a', '李四', '', 'user', 'li4@gbevent.dev', '13800000004', NOW(3)),
+(5, 'wang5', '$2a$10$TMTpnDbEwRbtcbF9VJxAxe5IswQjmo7pboKI9zVtU.BYnhzdJpX9a', '王五', '', 'user', 'wang5@gbevent.dev', '13800000005', NOW(3));
 
 INSERT INTO activities (id, title, description, cover_image, activity_type, start_time, end_time, location, capacity, signup_deadline, status, organizer_id, created_at) VALUES
 (1, 'Go 语言企业级开发实战讲座', '深入讲解 Go 1.22 + Gin + GORM 的企业级工程实践。', '', 'lecture', DATE_ADD(NOW(), INTERVAL 7 DAY), DATE_ADD(NOW(), INTERVAL 7 DAY), '线上直播', 200, DATE_ADD(NOW(), INTERVAL 6 DAY), 'published', 2, NOW(3)),
 (2, '新员工安全培训', '面向新入职员工的安全意识与应急处理培训。', '', 'training', DATE_ADD(NOW(), INTERVAL 14 DAY), DATE_ADD(NOW(), INTERVAL 14 DAY), 'A 座 3 楼培训室', 50, DATE_ADD(NOW(), INTERVAL 13 DAY), 'published', 2, NOW(3)),
 (3, '秋季团队趣味运动会', '团队协作趣味运动会，包含拔河、接力、跳绳等项目。', '', 'party', DATE_ADD(NOW(), INTERVAL 30 DAY), DATE_ADD(NOW(), INTERVAL 30 DAY), '城市体育公园', 120, DATE_ADD(NOW(), INTERVAL 28 DAY), 'published', 2, NOW(3)),
 (4, '黑客松编程竞赛（草稿）', '24 小时黑客松编程竞赛，暂未发布。', '', 'competition', DATE_ADD(NOW(), INTERVAL 60 DAY), DATE_ADD(NOW(), INTERVAL 62 DAY), '创新中心', 80, DATE_ADD(NOW(), INTERVAL 55 DAY), 'draft', 2, NOW(3)),
-(5, '上季度读书分享会（已结束）', '已结束的读书分享会。', '', 'lecture', DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY), '咖啡厅', 30, DATE_SUB(NOW(), INTERVAL 11 DAY), 'ended', 2, NOW(3));
+(5, '小范围架构评审闭门会', '名额有限的闭门分享，报满后可进入候补队列。', '', 'lecture', DATE_ADD(NOW(), INTERVAL 21 DAY), DATE_ADD(NOW(), INTERVAL 21 DAY), '总部 2 楼会议室', 2, DATE_ADD(NOW(), INTERVAL 20 DAY), 'published', 2, NOW(3)),
+(6, '上季度读书分享会（已结束）', '已结束的读书分享会。', '', 'lecture', DATE_SUB(NOW(), INTERVAL 10 DAY), DATE_SUB(NOW(), INTERVAL 10 DAY), '咖啡厅', 30, DATE_SUB(NOW(), INTERVAL 11 DAY), 'ended', 2, NOW(3));
 
 INSERT INTO registrations (id, activity_id, user_id, name, phone, remark, voucher_no, status, review_status, created_at) VALUES
-(1, 1, 3, '张三', '13900000001', '希望了解工程实践', 'GB20260816000001', 'registered', 'approved', NOW(3)),
-(2, 2, 3, '张三', '13900000001', '', 'GB20260816000002', 'checked_in', 'approved', NOW(3)),
-(3, 3, 3, '张三', '13900000001', '', 'GB20260816000003', 'registered', 'pending', NOW(3));
+(1, 1, 3, '张三', '13900000003', '希望了解工程实践', 'GB20260816000001', 'registered', 'approved', NOW(3)),
+(2, 2, 3, '张三', '13900000003', '', 'GB20260816000002', 'checked_in', 'approved', NOW(3)),
+(3, 3, 3, '张三', '13900000003', '', 'GB20260816000003', 'registered', 'pending', NOW(3)),
+(4, 5, 3, '张三', '13900000003', '', 'GB20260816000004', 'registered', 'pending', NOW(3)),
+(5, 5, 4, '李四', '13900000004', '', 'GB20260816000005', 'registered', 'pending', NOW(3)),
+(6, 5, 5, '王五', '13900000005', '', 'GB20260816000006', 'waitlisted', 'pending', NOW(3)),
+(7, 5, 2, '活动组织者', '13800000002', '', 'GB20260816000007', 'waitlisted', 'pending', NOW(3));
 
 INSERT INTO check_in_records (id, registration_id, activity_id, check_in_method, check_in_time, operator_id, created_at) VALUES
 (1, 2, 2, 'voucher', NOW(), 2, NOW(3));

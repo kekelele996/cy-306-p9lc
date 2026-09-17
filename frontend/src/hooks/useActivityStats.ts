@@ -5,6 +5,7 @@ export interface ActivityStats {
   activity_id: number
   capacity: number
   registered_count: number
+  waitlisted_count: number
   checked_in_count: number
   checkin_rate: number
 }

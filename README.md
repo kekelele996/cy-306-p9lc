@@ -117,9 +117,10 @@ cy-306/
 - 后端：`backend/internal/constants/activity.go`、`backend/internal/model/activity.go`、`backend/internal/service/activity_service.go`、`backend/internal/util/formatters.go`、`backend/internal/constants/log_templates.go`、`backend/internal/constants/error_codes.go`、`backend/internal/dto/dto_activity.go`、`database/init.sql`
 - 前端：`frontend/src/constants/activity.ts`、`frontend/src/components/common/ActivityCard.vue`、`frontend/src/components/common/ActivityFilter.vue`、`frontend/src/pages/ActivityDetail.vue`、`frontend/src/pages/OrganizerActivities.vue`、`frontend/src/pages/Activities.vue`
 
-### RegistrationStatus（registered/cancelled/checked_in）
-- 后端：`backend/internal/constants/registration.go`、`backend/internal/model/registration.go`、`backend/internal/service/registration_service.go`、`backend/internal/service/check_in_record_service.go`、`backend/internal/util/formatters.go`、`backend/internal/constants/log_templates.go`、`backend/internal/constants/error_codes.go`、`database/init.sql`
-- 前端：`frontend/src/constants/registration.ts`、`frontend/src/components/common/RegistrationTable.vue`、`frontend/src/components/common/MyRegistrations.vue`、`frontend/src/pages/OrganizerRegistrations.vue`、`frontend/src/pages/Profile.vue`
+### RegistrationStatus（registered/waitlisted/cancelled/checked_in）
+- 候补状态 `waitlisted`：活动名额占满后新报名进入候补队列（不占名额），按提交先后排队；正式报名被取消或审核驳回时，在同一数据库事务内把最早候补者转为 `registered` 并通知本人，释放名额与转正占用名额严格等量。
+- 后端：`backend/internal/constants/registration.go`、`backend/internal/model/registration.go`、`backend/internal/repository/registration_repository.go`、`backend/internal/repository/activity_repository.go`、`backend/internal/service/registration_service.go`、`backend/internal/service/activity_service.go`、`backend/internal/service/check_in_record_service.go`、`backend/internal/util/formatters.go`、`backend/internal/constants/log_templates.go`、`backend/internal/constants/error_codes.go`、`backend/internal/constants/messages.go`、`backend/internal/dto/dto_registration.go`、`database/init.sql`
+- 前端：`frontend/src/constants/registration.ts`、`frontend/src/types/index.ts`、`frontend/src/components/common/RegistrationTable.vue`、`frontend/src/components/common/MyRegistrations.vue`、`frontend/src/components/common/SignupForm.vue`、`frontend/src/components/common/ActivityCard.vue`、`frontend/src/pages/ActivityDetail.vue`、`frontend/src/pages/OrganizerRegistrations.vue`、`frontend/src/pages/Profile.vue`
 
 ### ActivityType（lecture/training/party/competition）
 - 后端：`backend/internal/constants/activity.go`、`backend/internal/model/activity.go`、`backend/internal/service/activity_service.go`、`backend/internal/util/formatters.go`、`backend/internal/constants/log_templates.go`、`backend/internal/constants/error_codes.go`、`backend/internal/dto/dto_activity.go`、`database/init.sql`
@@ -170,11 +171,11 @@ cy-306/
 ## 主要功能
 
 - 活动发布：创建、编辑、发布、结束、下架活动，活动封面图上传。
-- 在线报名：名额校验、报名截止校验、防重复报名、凭证号生成、审核与取消。
+- 在线报名：名额校验、报名截止校验、防重复报名、凭证号生成、审核与取消；名额占满后按提交先后进入候补队列，正式报名取消或被驳回时在同一事务内自动转正最早候补者并通知本人。
 - 签到管理：凭证号签到、扫码签到、签到率统计、报名名单导出 CSV。
 - 活动日历：月历视图展示活动分布，日期格子显示活动数量，点击日期展开当天活动。
 - 评论收藏：评分评论、平均分展示、收藏与取消收藏。
-- 消息通知：报名成功、审核结果、签到成功自动通知。
+- 消息通知：报名成功、进入候补、候补转正、审核结果、签到成功自动通知。
 - 角色权限：JWT + RBAC（user/organizer/admin），操作审计日志。
 
 ## License

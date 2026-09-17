@@ -15,6 +15,7 @@ import (
 
 // ActivityService 活动业务逻辑。
 type ActivityService struct {
+	db          *gorm.DB
 	repo        *repository.ActivityRepository
 	regRepo     *repository.RegistrationRepository
 	notifyRepo  *repository.NotificationRepository
@@ -23,10 +24,10 @@ type ActivityService struct {
 }
 
 // NewActivityService 构造活动服务。
-func NewActivityService(repo *repository.ActivityRepository, regRepo *repository.RegistrationRepository,
+func NewActivityService(db *gorm.DB, repo *repository.ActivityRepository, regRepo *repository.RegistrationRepository,
 	notifyRepo *repository.NotificationRepository, checkinRepo *repository.CheckInRecordRepository,
 	logger *slog.Logger) *ActivityService {
-	return &ActivityService{repo: repo, regRepo: regRepo, notifyRepo: notifyRepo, checkinRepo: checkinRepo, logger: logger}
+	return &ActivityService{db: db, repo: repo, regRepo: regRepo, notifyRepo: notifyRepo, checkinRepo: checkinRepo, logger: logger}
 }
 
 // Create 创建活动。
@@ -178,6 +179,23 @@ func (s *ActivityService) Get(id uint64) (*model.Activity, int64, error) {
 	return a, count, nil
 }
 
+// GetWithCounts 查询活动详情，附带占名额人数与候补队列人数。
+func (s *ActivityService) GetWithCounts(id uint64) (*model.Activity, int64, int64, error) {
+	a, err := s.repo.FindByID(id)
+	if err != nil {
+		return nil, 0, 0, util.Wrap(err, "Activity[id=%d] get failed", id)
+	}
+	registered, err := s.repo.CountRegistered(id)
+	if err != nil {
+		return nil, 0, 0, util.Wrap(err, "Activity[id=%d] count registered failed", id)
+	}
+	waitlisted, err := s.repo.CountWaitlistedTx(s.db, id)
+	if err != nil {
+		return nil, 0, 0, util.Wrap(err, "Activity[id=%d] count waitlisted failed", id)
+	}
+	return a, registered, waitlisted, nil
+}
+
 // Calendar 按月份返回活动日历数据。
 func (s *ActivityService) Calendar(month string) ([]model.Activity, error) {
 	start, err := time.Parse("2006-01", month)
@@ -206,6 +224,10 @@ func (s *ActivityService) Stats(activityID, operatorID uint64, operatorRole stri
 	if err != nil {
 		return nil, err
 	}
+	waitlisted, err := s.repo.CountWaitlistedTx(s.db, activityID)
+	if err != nil {
+		return nil, err
+	}
 	checked, err := s.checkinRepo.CountCheckedIn(activityID)
 	if err != nil {
 		return nil, err
@@ -219,6 +241,7 @@ func (s *ActivityService) Stats(activityID, operatorID uint64, operatorRole stri
 		"activity_id":      activityID,
 		"capacity":         a.Capacity,
 		"registered_count": registered,
+		"waitlisted_count": waitlisted,
 		"checked_in_count": checked,
 		"checkin_rate":     round2(rate),
 	}, nil
@@ -264,6 +287,43 @@ func (s *ActivityService) checkRegistrationLimit(a *model.Activity, countFn func
 		return util.NewAppError(constants.CodeActivityFull, constants.MsgActivityFull)
 	}
 	return nil
+}
+
+// CheckSignupEligibilityTx 事务内校验活动是否允许提交报名（状态与截止时间），名额由调用方另行判断。
+// 返回已加行锁的活动，供后续名额统计使用。
+func (s *ActivityService) CheckSignupEligibilityTx(tx *gorm.DB, activityID uint64) (*model.Activity, error) {
+	a, err := s.repo.FindByIDForUpdate(tx, activityID)
+	if err != nil {
+		return nil, util.Wrap(err, "Activity[id=%d] check signup eligibility failed", activityID)
+	}
+	if a.Status == constants.ActivityStatusEnded {
+		return nil, util.NewAppError(constants.CodeActivityEnded, constants.MsgActivityEnded)
+	}
+	if a.Status != constants.ActivityStatusPublished {
+		return nil, util.NewAppError(constants.CodeConflict, "Activity[id="+itoa(a.ID)+"] not published")
+	}
+	if time.Now().After(a.SignupDeadline) {
+		return nil, util.NewAppError(constants.CodeActivityEnded, "Activity[id="+itoa(a.ID)+"] signup deadline passed")
+	}
+	return a, nil
+}
+
+// FindActivityForUpdateTx 事务内锁定活动行（供取消/审核触发候补顺延时使用）。
+func (s *ActivityService) FindActivityForUpdateTx(tx *gorm.DB, activityID uint64) (*model.Activity, error) {
+	a, err := s.repo.FindByIDForUpdate(tx, activityID)
+	if err != nil {
+		return nil, util.Wrap(err, "Activity[id=%d] lock for waitlist promote failed", activityID)
+	}
+	return a, nil
+}
+
+// CountRegisteredTx 事务内统计占用名额的报名人数。
+func (s *ActivityService) CountRegisteredTx(tx *gorm.DB, activityID uint64) (int64, error) {
+	n, err := s.repo.CountRegisteredTx(tx, activityID)
+	if err != nil {
+		return 0, util.Wrap(err, "Activity[id=%d] count registered failed", activityID)
+	}
+	return n, nil
 }
 
 // CreateSignupNotification 生成报名/审核/签到通知。

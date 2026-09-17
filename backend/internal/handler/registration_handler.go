@@ -38,7 +38,11 @@ func (h *RegistrationHandler) Create(c *gin.Context) {
 		h.wrapError(c, err, "Registration create failed")
 		return
 	}
-	OKWithMessage(c, constants.MsgSignupSuccess, reg)
+	msg := constants.MsgSignupSuccess
+	if reg.Status == constants.RegistrationStatusWaitlisted {
+		msg = constants.MsgWaitlistJoined
+	}
+	OKWithMessage(c, msg, reg)
 }
 
 // List 报名列表（组织者）。

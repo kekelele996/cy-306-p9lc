@@ -12,6 +12,9 @@
         </el-select>
       </el-form-item>
       <el-form-item>
+        <el-tag v-if="activityId && stats" type="warning" size="large">
+          候补 {{ stats.waitlisted_count || 0 }} 人
+        </el-tag>
         <el-button v-if="activityId" type="success" @click="exportCsv">导出名单</el-button>
         <el-button type="primary" @click="offlineVisible = true">线下补录</el-button>
       </el-form-item>
@@ -62,11 +65,13 @@ import CheckInQrCode from '@/components/common/CheckInQrCode.vue'
 import { useRegistrationStore } from '@/stores/registrationStore'
 import { offlineSignup, exportRegistrations } from '@/api/registration'
 import { useCheckIn } from '@/hooks/useCheckIn'
+import { getActivityStats } from '@/api/activity'
 import { RegistrationStatusText } from '@/constants/registration'
 import type { Activity, Registration } from '@/types'
 
 const store = useRegistrationStore()
 const { byVoucher } = useCheckIn()
+const stats = ref<{ waitlisted_count?: number; registered_count?: number; checked_in_count?: number } | null>(null)
 const loading = ref(false)
 const page = ref(1)
 const pageSize = 10
@@ -94,6 +99,10 @@ async function load() {
   loading.value = true
   try {
     await store.fetchList({ page: page.value, page_size: pageSize, activity_id: activityId.value, status: statusFilter.value || undefined })
+    if (activityId.value) {
+      const res: any = await getActivityStats(activityId.value)
+      stats.value = res.data
+    }
   } finally {
     loading.value = false
   }

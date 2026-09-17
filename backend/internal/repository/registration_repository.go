@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"gbevent/internal/constants"
 	"gbevent/internal/model"
 
 	"gorm.io/gorm"
@@ -135,6 +136,35 @@ func (r *RegistrationRepository) ListByActivity(activityID uint64) ([]model.Regi
 		return nil, fmt.Errorf("list registrations by activity: %w", err)
 	}
 	return list, nil
+}
+
+// FindEarliestWaitlistedForUpdateTx 在事务内锁定候补队列中最早的报名（按提交先后 id 升序）。
+// 无候补时返回 ErrNotFound。
+func (r *RegistrationRepository) FindEarliestWaitlistedForUpdateTx(tx *gorm.DB, activityID uint64) (*model.Registration, error) {
+	var reg model.Registration
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("activity_id = ? AND status = ?", activityID, constants.RegistrationStatusWaitlisted).
+		Order("id ASC").First(&reg).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("find earliest waitlisted registration: %w", err)
+	}
+	return &reg, nil
+}
+
+// WaitlistPosition 返回候补报名在其活动候补队列中的位次（从 1 开始），非候补返回 0。
+func (r *RegistrationRepository) WaitlistPosition(reg *model.Registration) (int, error) {
+	if reg.Status != constants.RegistrationStatusWaitlisted {
+		return 0, nil
+	}
+	var n int64
+	if err := r.db.Model(&model.Registration{}).
+		Where("activity_id = ? AND status = ? AND id <= ?", reg.ActivityID, constants.RegistrationStatusWaitlisted, reg.ID).
+		Count(&n).Error; err != nil {
+		return 0, fmt.Errorf("count waitlist position: %w", err)
+	}
+	return int(n), nil
 }
 
 // Update 更新报名。

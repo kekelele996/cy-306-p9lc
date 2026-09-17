@@ -22,7 +22,7 @@ import { ElMessage } from 'element-plus'
 import { signup } from '@/api/registration'
 
 const props = defineProps<{ activityId: number }>()
-const emit = defineEmits<{ (e: 'success'): void }>()
+const emit = defineEmits<{ (e: 'success', waitlisted: boolean): void }>()
 
 const formRef = ref<FormInstance>()
 const loading = ref(false)
@@ -37,9 +37,10 @@ async function submit() {
   if (!valid) return
   loading.value = true
   try {
-    await signup({ activity_id: props.activityId, ...form })
-    ElMessage.success('报名成功')
-    emit('success')
+    const res: any = await signup({ activity_id: props.activityId, ...form })
+    const waitlisted = res?.data?.status === 'waitlisted'
+    ElMessage.success(waitlisted ? '活动名额已满，已进入候补队列' : (res?.message || '报名成功'))
+    emit('success', waitlisted)
   } finally {
     loading.value = false
   }

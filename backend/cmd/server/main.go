@@ -52,7 +52,7 @@ func main() {
 	notifyRepo := repository.NewNotificationRepository(db)
 
 	userSvc := service.NewUserService(userRepo, logger)
-	activitySvc := service.NewActivityService(activityRepo, regRepo, notifyRepo, checkinRepo, logger)
+	activitySvc := service.NewActivityService(db, activityRepo, regRepo, notifyRepo, checkinRepo, logger)
 	regSvc := service.NewRegistrationService(db, regRepo, activitySvc, notifyRepo, logger)
 	checkinSvc := service.NewCheckInRecordService(db, checkinRepo, regRepo, activitySvc, notifyRepo, logger)
 	commentSvc := service.NewCommentService(commentRepo, activitySvc, logger)

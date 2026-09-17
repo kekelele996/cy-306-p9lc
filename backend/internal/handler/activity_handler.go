@@ -60,12 +60,12 @@ func (h *ActivityHandler) Get(c *gin.Context) {
 		Fail(c, http.StatusBadRequest, constants.CodeBadRequest, "Activity[id] get: invalid id")
 		return
 	}
-	a, count, err := h.svc.Get(id)
+	a, count, waitlisted, err := h.svc.GetWithCounts(id)
 	if err != nil {
 		h.wrapError(c, err, "Activity get failed")
 		return
 	}
-	OK(c, gin.H{"activity": a, "registered_count": count})
+	OK(c, gin.H{"activity": a, "registered_count": count, "waitlisted_count": waitlisted})
 }
 
 // Create 创建活动。

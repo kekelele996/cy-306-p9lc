@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"time"
 
+	"gbevent/internal/constants"
 	"gbevent/internal/model"
 
 	"gorm.io/gorm"
@@ -117,8 +118,18 @@ func (r *ActivityRepository) CountRegisteredTx(tx *gorm.DB, activityID uint64) (
 func (r *ActivityRepository) countRegistered(db *gorm.DB, activityID uint64) (int64, error) {
 	var n int64
 	if err := db.Model(&model.Registration{}).
-		Where("activity_id = ? AND status <> ?", activityID, "cancelled").Count(&n).Error; err != nil {
+		Where("activity_id = ? AND status IN ?", activityID, constants.OccupiedRegistrationStatuses).Count(&n).Error; err != nil {
 		return 0, fmt.Errorf("count registrations: %w", err)
+	}
+	return n, nil
+}
+
+// CountWaitlistedTx 在事务内统计活动候补队列人数。
+func (r *ActivityRepository) CountWaitlistedTx(tx *gorm.DB, activityID uint64) (int64, error) {
+	var n int64
+	if err := tx.Model(&model.Registration{}).
+		Where("activity_id = ? AND status = ?", activityID, constants.RegistrationStatusWaitlisted).Count(&n).Error; err != nil {
+		return 0, fmt.Errorf("count waitlisted registrations: %w", err)
 	}
 	return n, nil
 }

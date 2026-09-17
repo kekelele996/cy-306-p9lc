@@ -37,6 +37,8 @@ func (s *SeedService) Seed() error {
 		{Username: "admin", PasswordHash: string(adminHash), Nickname: "系统管理员", Role: constants.RoleAdmin, Email: "admin@gbevent.dev", Phone: "13800000001"},
 		{Username: "organizer", PasswordHash: string(userHash), Nickname: "活动组织者", Role: constants.RoleOrganizer, Email: "org@gbevent.dev", Phone: "13800000002"},
 		{Username: "user", PasswordHash: string(userHash), Nickname: "普通用户", Role: constants.RoleUser, Email: "user@gbevent.dev", Phone: "13800000003"},
+		{Username: "li4", PasswordHash: string(userHash), Nickname: "李四", Role: constants.RoleUser, Email: "li4@gbevent.dev", Phone: "13800000004"},
+		{Username: "wang5", PasswordHash: string(userHash), Nickname: "王五", Role: constants.RoleUser, Email: "wang5@gbevent.dev", Phone: "13800000005"},
 	}
 	for i := range users {
 		if err := s.db.Create(&users[i]).Error; err != nil {
@@ -49,6 +51,8 @@ func (s *SeedService) Seed() error {
 		{Title: "新员工安全培训", Description: "面向新入职员工的安全意识与应急处理培训。", ActivityType: constants.ActivityTypeTraining, StartTime: now.AddDate(0, 0, 14), EndTime: now.AddDate(0, 0, 14), Location: "A 座 3 楼培训室", Capacity: 50, SignupDeadline: now.AddDate(0, 0, 13), Status: constants.ActivityStatusPublished, OrganizerID: 2},
 		{Title: "秋季团队趣味运动会", Description: "团队协作趣味运动会，包含拔河、接力、跳绳等项目。", ActivityType: constants.ActivityTypeParty, StartTime: now.AddDate(0, 0, 30), EndTime: now.AddDate(0, 0, 30), Location: "城市体育公园", Capacity: 120, SignupDeadline: now.AddDate(0, 0, 28), Status: constants.ActivityStatusPublished, OrganizerID: 2},
 		{Title: "黑客松编程竞赛（草稿）", Description: "24 小时黑客松编程竞赛，暂未发布。", ActivityType: constants.ActivityTypeCompetition, StartTime: now.AddDate(0, 0, 60), EndTime: now.AddDate(0, 0, 62), Location: "创新中心", Capacity: 80, SignupDeadline: now.AddDate(0, 0, 55), Status: constants.ActivityStatusDraft, OrganizerID: 2},
+		// 名额 2 已满，另含 2 名候补，用于演示候补队列与转正顺延
+		{Title: "小范围架构评审闭门会", Description: "名额有限的闭门分享，报满后可进入候补队列。", ActivityType: constants.ActivityTypeLecture, StartTime: now.AddDate(0, 0, 21), EndTime: now.AddDate(0, 0, 21), Location: "总部 2 楼会议室", Capacity: 2, SignupDeadline: now.AddDate(0, 0, 20), Status: constants.ActivityStatusPublished, OrganizerID: 2},
 	}
 	for i := range activities {
 		if err := s.db.Create(&activities[i]).Error; err != nil {
@@ -59,6 +63,11 @@ func (s *SeedService) Seed() error {
 		{ActivityID: 1, UserID: 3, Name: "张三", Phone: "13900000001", VoucherNo: "GB20260816000001", Status: constants.RegistrationStatusRegistered, ReviewStatus: constants.ReviewStatusApproved},
 		{ActivityID: 2, UserID: 3, Name: "张三", Phone: "13900000001", VoucherNo: "GB20260816000002", Status: constants.RegistrationStatusCheckedIn, ReviewStatus: constants.ReviewStatusApproved},
 		{ActivityID: 3, UserID: 3, Name: "张三", Phone: "13900000001", VoucherNo: "GB20260816000003", Status: constants.RegistrationStatusRegistered, ReviewStatus: constants.ReviewStatusPending},
+		// 活动 5：2 个正式名额（待审核）+ 2 名候补，按提交先后排队
+		{ActivityID: 5, UserID: 3, Name: "张三", Phone: "13900000003", VoucherNo: "GB20260816000004", Status: constants.RegistrationStatusRegistered, ReviewStatus: constants.ReviewStatusPending},
+		{ActivityID: 5, UserID: 4, Name: "李四", Phone: "13800000004", VoucherNo: "GB20260816000005", Status: constants.RegistrationStatusRegistered, ReviewStatus: constants.ReviewStatusPending},
+		{ActivityID: 5, UserID: 5, Name: "王五", Phone: "13800000005", VoucherNo: "GB20260816000006", Status: constants.RegistrationStatusWaitlisted, ReviewStatus: constants.ReviewStatusPending},
+		{ActivityID: 5, UserID: 2, Name: "活动组织者", Phone: "13800000002", VoucherNo: "GB20260816000007", Status: constants.RegistrationStatusWaitlisted, ReviewStatus: constants.ReviewStatusPending},
 	}
 	for i := range regs {
 		if err := s.db.Create(&regs[i]).Error; err != nil {

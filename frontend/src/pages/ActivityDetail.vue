@@ -8,6 +8,10 @@
         <span>时间：{{ formatDateTime(activity.start_time) }} ~ {{ formatDateTime(activity.end_time) }}</span>
         <span>地点：{{ activity.location }}</span>
         <span>名额：{{ registeredCount }}/{{ activity.capacity }}</span>
+        <el-tag v-if="waitlistedCount > 0" type="warning" size="small">
+          候补 {{ waitlistedCount }} 人
+        </el-tag>
+        <el-tag v-if="isFull" type="danger" size="small">名额已满，报名将进入候补</el-tag>
       </div>
       <el-divider />
       <p class="desc">{{ activity.description }}</p>
@@ -63,10 +67,15 @@ const auth = useAuth()
 const loading = ref(false)
 const activity = ref<Activity | null>(null)
 const registeredCount = ref(0)
+const waitlistedCount = ref(0)
 const favorited = ref(false)
 const commentForm = reactive({ rating: 5, content: '' })
 
 const canSignup = computed(() => activity.value?.status === 'published')
+const isFull = computed(() => {
+  const a = activity.value
+  return !!a && a.capacity > 0 && registeredCount.value >= a.capacity
+})
 
 async function checkFavorited(id: number) {
   const res = await listMyFavorites({ page: 1, page_size: 200 })
@@ -79,6 +88,7 @@ async function load() {
     const id = Number(route.params.id)
     activity.value = await store.fetchDetail(id)
     registeredCount.value = store.registeredCount
+    waitlistedCount.value = store.waitlistedCount
     if (auth.isLoggedIn) {
       favorited.value = await checkFavorited(id)
     }
@@ -106,8 +116,9 @@ async function toggleFavorite() {
   }
 }
 
-function onSignup() {
-  ElMessage.success('报名成功，可在个人中心查看')
+async function onSignup(waitlisted: boolean) {
+  ElMessage.success(waitlisted ? '已进入候补队列，转正后将收到通知' : '报名成功，可在个人中心查看')
+  await load()
 }
 
 onMounted(load)

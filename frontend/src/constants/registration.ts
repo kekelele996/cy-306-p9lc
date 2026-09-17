@@ -1,12 +1,14 @@
 // 报名状态枚举（与后端 backend/internal/constants/registration.go 保持一致）
 export const RegistrationStatus = {
   REGISTERED: 'registered',
+  WAITLISTED: 'waitlisted',
   CANCELLED: 'cancelled',
   CHECKED_IN: 'checked_in',
 } as const
 
 export const RegistrationStatusText: Record<string, string> = {
   [RegistrationStatus.REGISTERED]: '已报名',
+  [RegistrationStatus.WAITLISTED]: '候补中',
   [RegistrationStatus.CANCELLED]: '已取消',
   [RegistrationStatus.CHECKED_IN]: '已签到',
 }

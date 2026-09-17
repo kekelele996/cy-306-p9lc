@@ -19,7 +19,10 @@
         <span>{{ activity.location }}</span>
       </div>
       <div class="footer">
-        <span class="capacity">名额 {{ activity.registered_count ?? 0 }}/{{ activity.capacity }}</span>
+        <span class="capacity">
+          名额 {{ activity.registered_count ?? 0 }}/{{ activity.capacity }}
+          <el-tag v-if="isFull" type="danger" size="small">已满可候补</el-tag>
+        </span>
         <el-button type="primary" size="small">查看详情</el-button>
       </div>
     </div>
@@ -41,6 +44,10 @@ const statusTagType = computed(() => {
   if (props.activity.status === ActivityStatus.DRAFT) return 'warning'
   return 'success'
 })
+
+const isFull = computed(() =>
+  props.activity.capacity > 0 && (props.activity.registered_count ?? 0) >= props.activity.capacity,
+)
 
 function goDetail() {
   router.push(`/activities/${props.activity.id}`)
