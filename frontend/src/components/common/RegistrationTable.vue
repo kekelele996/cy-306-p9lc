@@ -7,7 +7,7 @@
       <el-table-column prop="voucher_no" label="凭证号" width="170" />
       <el-table-column label="状态" width="100">
         <template #default="{ row }">
-          <el-tag :type="statusTag(row.status)">{{ RegistrationStatusText[row.status] }}</el-tag>
+          <el-tag :type="displayRegistrationTag(row)">{{ displayRegistrationText(row) }}</el-tag>
         </template>
       </el-table-column>
       <el-table-column label="审核" width="100">
@@ -37,7 +37,7 @@
 
 <script setup lang="ts">
 import { reviewRegistration } from '@/api/registration'
-import { RegistrationStatusText, ReviewStatusText } from '@/constants/registration'
+import { ReviewStatusText, displayRegistrationText, displayRegistrationTag } from '@/constants/registration'
 import { ElMessage } from 'element-plus'
 import type { Registration } from '@/types'
 
@@ -55,11 +55,6 @@ const emit = defineEmits<{
   (e: 'page-change', page: number): void
 }>()
 
-function statusTag(status: string): string {
-  if (status === 'checked_in') return 'success'
-  if (status === 'cancelled') return 'info'
-  return 'primary'
-}
 function reviewTag(status: string): string {
   if (status === 'approved') return 'success'
   if (status === 'rejected') return 'danger'

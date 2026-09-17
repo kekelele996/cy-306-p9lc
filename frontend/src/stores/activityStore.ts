@@ -9,6 +9,7 @@ export const useActivityStore = defineStore('activity', {
     calendar: [] as Activity[],
     current: null as Activity | null,
     registeredCount: 0,
+    waitlistedCount: 0,
   }),
   actions: {
     async fetchList(params: { page?: number; page_size?: number; activity_type?: string; status?: string; keyword?: string } = {}) {
@@ -24,6 +25,7 @@ export const useActivityStore = defineStore('activity', {
       const res = await getActivity(id)
       this.current = res.data.activity
       this.registeredCount = res.data.registered_count
+      this.waitlistedCount = res.data.waitlisted_count ?? 0
       return this.current
     },
   },

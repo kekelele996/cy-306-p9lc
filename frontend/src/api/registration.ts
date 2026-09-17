@@ -1,7 +1,14 @@
 import request from '@/utils/request'
+import type { Registration } from '@/types'
+
+export interface SignupResult {
+  code: number
+  message: string
+  data: Registration
+}
 
 export function signup(data: { activity_id: number; name: string; phone: string; remark?: string }) {
-  return request.post('/registrations', data)
+  return request.post<any, SignupResult>('/registrations', data)
 }
 
 export function listRegistrations(params: { page?: number; page_size?: number; activity_id?: number; status?: string; review_status?: string }) {

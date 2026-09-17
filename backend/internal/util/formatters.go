@@ -64,6 +64,8 @@ func RegistrationStatusText(status string) string {
 		return "已取消"
 	case constants.RegistrationStatusCheckedIn:
 		return "已签到"
+	case constants.RegistrationStatusWaitlisted:
+		return "候补中"
 	default:
 		return status
 	}
@@ -94,6 +96,10 @@ func NotificationTypeText(t string) string {
 		return "审核结果"
 	case constants.NotificationCheckinSuccess:
 		return "签到成功"
+	case constants.NotificationWaitlistJoined:
+		return "候补排队"
+	case constants.NotificationWaitlistPromoted:
+		return "候补转正"
 	default:
 		return t
 	}

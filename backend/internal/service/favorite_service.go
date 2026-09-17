@@ -23,7 +23,7 @@ func NewFavoriteService(repo *repository.FavoriteRepository, activitySvc *Activi
 
 // Add 收藏活动。
 func (s *FavoriteService) Add(userID, activityID uint64) (*model.Favorite, error) {
-	if _, _, err := s.activitySvc.Get(activityID); err != nil {
+	if _, _, _, err := s.activitySvc.Get(activityID); err != nil {
 		return nil, err
 	}
 	exists, err := s.repo.Exists(userID, activityID)

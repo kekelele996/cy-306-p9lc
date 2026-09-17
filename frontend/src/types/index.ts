@@ -27,6 +27,7 @@ export interface Activity {
   organizer_id: number
   created_at: string
   registered_count?: number
+  waitlisted_count?: number
 }
 
 export interface Registration {

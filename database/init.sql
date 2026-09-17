@@ -45,7 +45,9 @@ CREATE TABLE IF NOT EXISTS registrations (
   phone VARCHAR(20) NOT NULL,
   remark VARCHAR(255) NOT NULL DEFAULT '',
   voucher_no VARCHAR(50) NOT NULL,
+  -- status: registered 正式报名 / waitlisted 候补中 / cancelled 已取消（含审核驳回释放名额）/ checked_in 已签到
   status VARCHAR(20) NOT NULL DEFAULT 'registered',
+  -- review_status: pending 待审核 / approved 已通过 / rejected 已拒绝（rejected 与 status=cancelled 同时出现表示审核驳回）
   review_status VARCHAR(20) NOT NULL DEFAULT 'pending',
   created_at DATETIME(3) NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   PRIMARY KEY (id),

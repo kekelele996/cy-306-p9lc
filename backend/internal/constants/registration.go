@@ -5,10 +5,11 @@ const (
 	RegistrationStatusRegistered = "registered"
 	RegistrationStatusCancelled  = "cancelled"
 	RegistrationStatusCheckedIn  = "checked_in"
+	RegistrationStatusWaitlisted = "waitlisted"
 )
 
 // RegistrationStatusValues 全部报名状态值。
-var RegistrationStatusValues = []string{RegistrationStatusRegistered, RegistrationStatusCancelled, RegistrationStatusCheckedIn}
+var RegistrationStatusValues = []string{RegistrationStatusRegistered, RegistrationStatusCancelled, RegistrationStatusCheckedIn, RegistrationStatusWaitlisted}
 
 // ReviewStatus 报名审核状态枚举。
 const (

@@ -37,8 +37,8 @@ async function submit() {
   if (!valid) return
   loading.value = true
   try {
-    await signup({ activity_id: props.activityId, ...form })
-    ElMessage.success('报名成功')
+    const res = await signup({ activity_id: props.activityId, ...form })
+    ElMessage.success(res.message || '报名成功')
     emit('success')
   } finally {
     loading.value = false

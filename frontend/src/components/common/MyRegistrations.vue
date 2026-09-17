@@ -3,9 +3,9 @@
     <el-table-column prop="id" label="ID" width="70" />
     <el-table-column prop="activity_id" label="活动ID" width="90" />
     <el-table-column prop="voucher_no" label="凭证号" width="180" />
-    <el-table-column label="状态" width="100">
+    <el-table-column label="报名资格" width="110">
       <template #default="{ row }">
-        <el-tag :type="tag(row.status)">{{ RegistrationStatusText[row.status] }}</el-tag>
+        <el-tag :type="displayRegistrationTag(row)">{{ displayRegistrationText(row) }}</el-tag>
       </template>
     </el-table-column>
     <el-table-column label="审核" width="100">
@@ -16,7 +16,7 @@
     <el-table-column prop="created_at" label="报名时间" />
     <el-table-column label="操作" width="100">
       <template #default="{ row }">
-        <el-button v-if="row.status === 'registered'" size="small" type="danger" @click="cancel(row)">取消</el-button>
+        <el-button v-if="isCancellable(row.status)" size="small" type="danger" @click="cancel(row)">取消</el-button>
       </template>
     </el-table-column>
   </el-table>
@@ -33,7 +33,7 @@
 import { onMounted, ref } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { cancelRegistration } from '@/api/registration'
-import { RegistrationStatusText, ReviewStatusText } from '@/constants/registration'
+import { ReviewStatusText, displayRegistrationText, displayRegistrationTag, isCancellable } from '@/constants/registration'
 import type { Registration } from '@/types'
 
 const list = ref<Registration[]>([])
@@ -57,7 +57,10 @@ async function load() {
 }
 
 async function cancel(row: Registration) {
-  await ElMessageBox.confirm('确认取消该报名？', '提示')
+  const tip = row.status === 'waitlisted'
+    ? '确认退出候补队列？'
+    : '确认取消该报名？若活动存在候补，名额将顺延给下一位候补者'
+  await ElMessageBox.confirm(tip, '提示')
   await cancelRegistration(row.id)
   ElMessage.success('已取消')
   await load()
@@ -66,11 +69,6 @@ async function cancel(row: Registration) {
 function onPage(p: number) {
   page.value = p
   load()
-}
-function tag(status: string): string {
-  if (status === 'checked_in') return 'success'
-  if (status === 'cancelled') return 'info'
-  return 'primary'
 }
 function reviewTag(status: string): string {
   if (status === 'approved') return 'success'

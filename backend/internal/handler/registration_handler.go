@@ -38,6 +38,10 @@ func (h *RegistrationHandler) Create(c *gin.Context) {
 		h.wrapError(c, err, "Registration create failed")
 		return
 	}
+	if reg.Status == constants.RegistrationStatusWaitlisted {
+		OKWithMessage(c, constants.MsgSignupWaitlisted, reg)
+		return
+	}
 	OKWithMessage(c, constants.MsgSignupSuccess, reg)
 }
 

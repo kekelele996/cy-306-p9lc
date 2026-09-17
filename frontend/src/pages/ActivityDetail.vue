@@ -7,7 +7,7 @@
         <el-tag :type="activity.status === 'published' ? 'success' : 'info'">{{ ActivityStatusText[activity.status] }}</el-tag>
         <span>时间：{{ formatDateTime(activity.start_time) }} ~ {{ formatDateTime(activity.end_time) }}</span>
         <span>地点：{{ activity.location }}</span>
-        <span>名额：{{ registeredCount }}/{{ activity.capacity }}</span>
+        <span>名额：{{ registeredCount }}/{{ activity.capacity }}<span v-if="waitlistedCount > 0" class="waitlist">（候补 {{ waitlistedCount }} 人）</span></span>
       </div>
       <el-divider />
       <p class="desc">{{ activity.description }}</p>
@@ -63,6 +63,7 @@ const auth = useAuth()
 const loading = ref(false)
 const activity = ref<Activity | null>(null)
 const registeredCount = ref(0)
+const waitlistedCount = ref(0)
 const favorited = ref(false)
 const commentForm = reactive({ rating: 5, content: '' })
 
@@ -79,6 +80,7 @@ async function load() {
     const id = Number(route.params.id)
     activity.value = await store.fetchDetail(id)
     registeredCount.value = store.registeredCount
+    waitlistedCount.value = store.waitlistedCount
     if (auth.isLoggedIn) {
       favorited.value = await checkFavorited(id)
     }
@@ -107,7 +109,8 @@ async function toggleFavorite() {
 }
 
 function onSignup() {
-  ElMessage.success('报名成功，可在个人中心查看')
+  ElMessage.success('提交成功，可在个人中心查看报名状态')
+  load()
 }
 
 onMounted(load)
@@ -115,6 +118,7 @@ onMounted(load)
 
 <style scoped>
 .meta { display: flex; gap: 16px; align-items: center; color: #606266; flex-wrap: wrap; }
+.waitlist { color: #e6a23c; margin-left: 4px; }
 .desc { color: #303133; line-height: 1.7; }
 .mb-2 { margin-bottom: 12px; }
 .fav { margin-top: 16px; }

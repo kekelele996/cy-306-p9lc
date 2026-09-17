@@ -23,6 +23,8 @@ const (
 	MsgRegisterSuccess     = "注册成功"
 	MsgLoginSuccess        = "登录成功"
 	MsgSignupSuccess       = "报名成功"
+	MsgSignupWaitlisted    = "活动名额已满，您已进入候补队列，将按提交顺序排队"
+	MsgWaitlistPromoted    = "候补名额已转正"
 	MsgCancelSuccess       = "取消报名成功"
 	MsgCheckinSuccess      = "签到成功"
 	MsgCommentSuccess      = "评论成功"

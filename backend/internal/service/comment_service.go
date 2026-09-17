@@ -26,7 +26,7 @@ func (s *CommentService) Create(activityID, userID uint64, rating int, content s
 	if rating < 1 || rating > 5 {
 		return nil, util.NewAppError(constants.CodeValidationFailed, "Comment[rating="+itoa(uint64(rating))+"] create: rating must be 1-5")
 	}
-	if _, _, err := s.activitySvc.Get(activityID); err != nil {
+	if _, _, _, err := s.activitySvc.Get(activityID); err != nil {
 		return nil, err
 	}
 	c := &model.Comment{ActivityID: activityID, UserID: userID, Rating: rating, Content: content}

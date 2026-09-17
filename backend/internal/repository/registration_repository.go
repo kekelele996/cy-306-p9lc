@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"gbevent/internal/constants"
 	"gbevent/internal/model"
 
 	"gorm.io/gorm"
@@ -87,6 +88,20 @@ func (r *RegistrationRepository) findByActivityAndUser(db *gorm.DB, activityID, 
 			return nil, ErrNotFound
 		}
 		return nil, fmt.Errorf("find registration by activity and user: %w", err)
+	}
+	return &reg, nil
+}
+
+// FindEarliestWaitlistedTx 在事务内锁定并取活动最早的候补报名（按提交先后），无候补时返回 ErrNotFound。
+func (r *RegistrationRepository) FindEarliestWaitlistedTx(tx *gorm.DB, activityID uint64) (*model.Registration, error) {
+	var reg model.Registration
+	if err := tx.Clauses(clause.Locking{Strength: "UPDATE"}).
+		Where("activity_id = ? AND status = ?", activityID, constants.RegistrationStatusWaitlisted).
+		Order("created_at ASC, id ASC").First(&reg).Error; err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, fmt.Errorf("find earliest waitlisted: %w", err)
 	}
 	return &reg, nil
 }
